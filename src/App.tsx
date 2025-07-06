@@ -5,8 +5,23 @@ import {
   FiList, FiHeart, FiPlus, FiSkipForward
 } from 'react-icons/fi';
 
-// Helper function to safely get data from localStorage
-const getLocalStorage = (key, defaultValue = []) => {
+interface Video {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  duration: string;
+  views: string;
+  date: string;
+}
+
+interface Tab {
+  id: string;
+  label: string;
+  icon: React.ReactNode | null;
+}
+
+const getLocalStorage = (key: string, defaultValue: string[] = []): string[] => {
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : defaultValue;
@@ -17,21 +32,19 @@ const getLocalStorage = (key, defaultValue = []) => {
 };
 
 const App = () => {
-  // State management with localStorage persistence
-  const [videos, setVideos] = useState([]);
-  const [currentVideo, setCurrentVideo] = useState(null);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [favorites, setFavorites] = useState(() => getLocalStorage('favorites'));
-  const [history, setHistory] = useState(() => getLocalStorage('history'));
-  const [playlist, setPlaylist] = useState(() => getLocalStorage('playlist'));
-  const [activeTab, setActiveTab] = useState(() => {
+  const [favorites, setFavorites] = useState<string[]>(() => getLocalStorage('favorites'));
+  const [history, setHistory] = useState<string[]>(() => getLocalStorage('history'));
+  const [playlist, setPlaylist] = useState<string[]>(() => getLocalStorage('playlist'));
+  const [activeTab, setActiveTab] = useState<string>(() => {
     const savedTab = localStorage.getItem('activeTab');
     return savedTab || 'all';
   });
   const [loading, setLoading] = useState(true);
-  const searchRef = useRef(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // Fetch videos on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -44,11 +57,10 @@ const App = () => {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
 
-  // Persist all user data to localStorage
   useEffect(() => {
     const saveData = () => {
       try {
@@ -61,26 +73,27 @@ const App = () => {
       }
     };
 
-    // Debounce the save operation to prevent excessive writes
     const timer = setTimeout(saveData, 300);
     return () => clearTimeout(timer);
   }, [favorites, history, playlist, activeTab]);
 
-  // Filter videos based on search and active tab
-  const filteredVideos = videos.filter(video => {
+  const filteredVideos = videos.filter((video: Video) => {
     const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         video.description.toLowerCase().includes(searchQuery.toLowerCase());
+      video.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    switch(activeTab) {
-      case 'favorites': return matchesSearch && favorites.includes(video.id);
-      case 'history': return matchesSearch && history.includes(video.id);
-      case 'playlist': return matchesSearch && playlist.includes(video.id);
-      default: return matchesSearch;
+    switch (activeTab) {
+      case 'favorites':
+        return matchesSearch && favorites.includes(video.id);
+      case 'history':
+        return matchesSearch && history.includes(video.id);
+      case 'playlist':
+        return matchesSearch && playlist.includes(video.id);
+      default:
+        return matchesSearch;
     }
   });
 
-  // Video actions with localStorage persistence
-  const playVideo = (video) => {
+  const playVideo = (video: Video) => {
     setCurrentVideo(video);
     if (!history.includes(video.id)) {
       setHistory(prev => [...prev, video.id]);
@@ -88,15 +101,15 @@ const App = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleFavorite = (videoId) => {
-    setFavorites(prev => 
+  const toggleFavorite = (videoId: string) => {
+    setFavorites(prev =>
       prev.includes(videoId)
         ? prev.filter(id => id !== videoId)
         : [...prev, videoId]
     );
   };
 
-  const togglePlaylist = (videoId) => {
+  const togglePlaylist = (videoId: string) => {
     setPlaylist(prev =>
       prev.includes(videoId)
         ? prev.filter(id => id !== videoId)
@@ -104,7 +117,6 @@ const App = () => {
     );
   };
 
-  // Clear all user data
   const clearAllData = () => {
     if (window.confirm('Are you sure you want to clear all your data?')) {
       setFavorites([]);
@@ -114,19 +126,25 @@ const App = () => {
     }
   };
 
-  // Keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setCurrentVideo(null);
       if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
         searchRef.current?.focus();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const tabs: Tab[] = [
+    { id: 'all', label: 'All Videos', icon: null },
+    { id: 'favorites', label: 'Favorites', icon: <FiHeart /> },
+    { id: 'history', label: 'History', icon: <FiClock /> },
+    { id: 'playlist', label: 'Playlist', icon: <FiList /> }
+  ];
 
   return (
     <div className="app-container">
@@ -136,7 +154,7 @@ const App = () => {
           <h1>AwashTube</h1>
           <span className="beta-badge">BETA</span>
         </div>
-        
+
         <div className="search-bar">
           <FiSearch className="search-icon" />
           <input
@@ -147,10 +165,7 @@ const App = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button 
-              className="clear-search"
-              onClick={() => setSearchQuery('')}
-            >
+            <button className="clear-search" onClick={() => setSearchQuery('')}>
               <FiX />
             </button>
           )}
@@ -159,21 +174,17 @@ const App = () => {
 
       {/* Navigation Tabs */}
       <nav className="tabs">
-        {[
-          { id: 'all', label: 'All Videos', icon: null },
-          { id: 'favorites', label: 'Favorites', icon: <FiHeart /> },
-          { id: 'history', label: 'History', icon: <FiClock /> },
-          { id: 'playlist', label: 'Playlist', icon: <FiList /> }
-        ].map(tab => (
+        {tabs.map(tab => (
           <button
             key={tab.id}
             className={`tab ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
           >
-            {tab.icon} {tab.label}
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
-        <button 
+        <button
           className="tab danger"
           onClick={clearAllData}
           title="Clear all data"
@@ -203,23 +214,18 @@ const App = () => {
         ) : (
           <div className="video-grid">
             {filteredVideos.map(video => (
-              <div 
-                key={video.id} 
+              <div
+                key={video.id}
                 className="video-card"
                 onClick={() => playVideo(video)}
               >
                 <div className="thumbnail-container">
-                  <img 
-                    src={video.thumbnail} 
-                    alt={video.title} 
-                    className="thumbnail"
-                  />
+                  <img src={video.thumbnail} alt={video.title} className="thumbnail" />
                   <div className="duration-badge">{video.duration}</div>
                   <div className="hover-overlay">
                     <FiPlay className="play-icon" />
                   </div>
                 </div>
-                
                 <div className="video-info">
                   <h3 className="video-title">{video.title}</h3>
                   <p className="video-description">
@@ -230,7 +236,6 @@ const App = () => {
                     <span>{video.date}</span>
                   </div>
                 </div>
-                
                 <div className="video-actions">
                   <button
                     className={`action-btn ${favorites.includes(video.id) ? 'active' : ''}`}
@@ -263,13 +268,9 @@ const App = () => {
       {currentVideo && (
         <div className="video-modal">
           <div className="modal-content">
-            <button 
-              className="close-modal"
-              onClick={() => setCurrentVideo(null)}
-            >
+            <button className="close-modal" onClick={() => setCurrentVideo(null)}>
               <FiX />
             </button>
-            
             <div className="player-container">
               <iframe
                 src={`https://www.youtube.com/embed/${currentVideo.id}?autoplay=1&modestbranding=1&rel=0`}
@@ -281,7 +282,6 @@ const App = () => {
                 title={currentVideo.title}
               ></iframe>
             </div>
-            
             <div className="video-details">
               <h2>{currentVideo.title}</h2>
               <div className="detail-actions">
@@ -289,13 +289,15 @@ const App = () => {
                   className={`detail-btn ${favorites.includes(currentVideo.id) ? 'active' : ''}`}
                   onClick={() => toggleFavorite(currentVideo.id)}
                 >
-                  <FiHeart /> {favorites.includes(currentVideo.id) ? 'Favorited' : 'Favorite'}
+                  <FiHeart />
+                  {favorites.includes(currentVideo.id) ? 'Favorited' : 'Favorite'}
                 </button>
                 <button
                   className={`detail-btn ${playlist.includes(currentVideo.id) ? 'active' : ''}`}
                   onClick={() => togglePlaylist(currentVideo.id)}
                 >
-                  <FiList /> {playlist.includes(currentVideo.id) ? 'In Playlist' : 'Add to Playlist'}
+                  <FiList />
+                  {playlist.includes(currentVideo.id) ? 'In Playlist' : 'Add to Playlist'}
                 </button>
                 {playlist.includes(currentVideo.id) && (
                   <button
@@ -328,27 +330,23 @@ const App = () => {
           --gray: #6c757d;
           --border: #dee2e6;
         }
-        
         * {
           box-sizing: border-box;
           margin: 0;
           padding: 0;
         }
-        
         body {
           font-family: 'Segoe UI', Arial, sans-serif;
           line-height: 1.6;
           color: #333;
           background-color: #f5f5f5;
         }
-        
         .app-container {
           max-width: 1400px;
           margin: 0 auto;
           padding: 20px;
           min-height: 100vh;
         }
-        
         /* Header Styles */
         .app-header {
           display: flex;
@@ -358,19 +356,16 @@ const App = () => {
           margin-bottom: 2rem;
           gap: 1rem;
         }
-        
         .brand {
           display: flex;
           align-items: center;
           gap: 0.5rem;
         }
-        
         .brand h1 {
           font-size: 1.8rem;
           font-weight: 700;
           color: var(--dark);
         }
-        
         .beta-badge {
           background: var(--primary);
           color: white;
@@ -379,14 +374,12 @@ const App = () => {
           font-size: 0.7rem;
           font-weight: bold;
         }
-        
         .search-bar {
           position: relative;
           flex: 1;
           min-width: 250px;
           max-width: 500px;
         }
-        
         .search-bar input {
           width: 100%;
           padding: 0.7rem 1rem 0.7rem 2.5rem;
@@ -395,13 +388,11 @@ const App = () => {
           font-size: 1rem;
           transition: all 0.3s;
         }
-        
         .search-bar input:focus {
           outline: none;
           border-color: var(--primary);
           box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
         }
-        
         .search-icon {
           position: absolute;
           left: 1rem;
@@ -409,7 +400,6 @@ const App = () => {
           transform: translateY(-50%);
           color: var(--gray);
         }
-        
         .clear-search {
           position: absolute;
           right: 1rem;
@@ -421,7 +411,6 @@ const App = () => {
           cursor: pointer;
           padding: 0.2rem;
         }
-        
         /* Tabs Navigation */
         .tabs {
           display: flex;
@@ -430,7 +419,6 @@ const App = () => {
           overflow-x: auto;
           padding-bottom: 0.5rem;
         }
-        
         .tab {
           padding: 0.7rem 1.2rem;
           background: white;
@@ -444,27 +432,22 @@ const App = () => {
           white-space: nowrap;
           transition: all 0.2s;
         }
-        
         .tab:hover {
           background: #f0f0f0;
         }
-        
         .tab.active {
           background: var(--primary);
           color: white;
           border-color: var(--primary);
         }
-        
         .tab.danger {
           background: #fff0f0;
           border-color: #ffcccc;
           color: var(--danger);
         }
-        
         .tab.danger:hover {
           background: #ffe0e0;
         }
-        
         /* Stats Bar */
         .stats-bar {
           display: flex;
@@ -476,12 +459,10 @@ const App = () => {
           font-size: 0.85rem;
           color: var(--gray);
         }
-        
         /* Content Area */
         .content {
           margin-top: 1rem;
         }
-        
         .loading-state {
           display: flex;
           flex-direction: column;
@@ -490,7 +471,6 @@ const App = () => {
           padding: 3rem;
           text-align: center;
         }
-        
         .spinner {
           width: 3rem;
           height: 3rem;
@@ -500,24 +480,22 @@ const App = () => {
           animation: spin 1s linear infinite;
           margin-bottom: 1rem;
         }
-        
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
-        
         .empty-state {
           text-align: center;
           padding: 3rem;
           color: var(--gray);
         }
-        
         /* Video Grid */
         .video-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 1.5rem;
         }
-        
         .video-card {
           background: white;
           border-radius: 0.5rem;
@@ -527,18 +505,15 @@ const App = () => {
           position: relative;
           cursor: pointer;
         }
-        
         .video-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
         .thumbnail-container {
           position: relative;
           padding-top: 56.25%; /* 16:9 aspect ratio */
           overflow: hidden;
         }
-        
         .thumbnail {
           position: absolute;
           top: 0;
@@ -547,7 +522,6 @@ const App = () => {
           height: 100%;
           object-fit: cover;
         }
-        
         .duration-badge {
           position: absolute;
           bottom: 0.5rem;
@@ -558,7 +532,6 @@ const App = () => {
           border-radius: 0.25rem;
           font-size: 0.8rem;
         }
-        
         .hover-overlay {
           position: absolute;
           top: 0;
@@ -572,11 +545,9 @@ const App = () => {
           opacity: 0;
           transition: opacity 0.2s;
         }
-        
         .video-card:hover .hover-overlay {
           opacity: 1;
         }
-        
         .play-icon {
           color: white;
           font-size: 2rem;
@@ -584,11 +555,9 @@ const App = () => {
           border-radius: 50%;
           padding: 1rem;
         }
-        
         .video-info {
           padding: 1rem;
         }
-        
         .video-title {
           font-size: 1rem;
           margin-bottom: 0.5rem;
@@ -597,7 +566,6 @@ const App = () => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        
         .video-description {
           font-size: 0.85rem;
           color: var(--gray);
@@ -607,14 +575,12 @@ const App = () => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        
         .video-meta {
           display: flex;
           justify-content: space-between;
           font-size: 0.8rem;
           color: var(--gray);
         }
-        
         .video-actions {
           position: absolute;
           top: 0.5rem;
@@ -622,7 +588,6 @@ const App = () => {
           display: flex;
           gap: 0.5rem;
         }
-        
         .action-btn {
           width: 2rem;
           height: 2rem;
@@ -636,15 +601,12 @@ const App = () => {
           cursor: pointer;
           transition: all 0.2s;
         }
-        
         .action-btn:hover {
           transform: scale(1.1);
         }
-        
         .action-btn.active {
           background: var(--primary);
         }
-        
         /* Video Modal */
         .video-modal {
           position: fixed;
@@ -659,14 +621,12 @@ const App = () => {
           z-index: 1000;
           padding: 1rem;
         }
-        
         .modal-content {
           width: 100%;
           max-width: 1100px;
           background: transparent;
           position: relative;
         }
-        
         .close-modal {
           position: absolute;
           top: -2.5rem;
@@ -678,13 +638,11 @@ const App = () => {
           cursor: pointer;
           padding: 0.5rem;
         }
-        
         .player-container {
           position: relative;
           padding-top: 56.25%; /* 16:9 aspect ratio */
           background: #000;
         }
-        
         iframe {
           position: absolute;
           top: 0;
@@ -693,7 +651,6 @@ const App = () => {
           height: 100%;
           border: none;
         }
-        
         .video-details {
           background: var(--dark);
           color: white;
@@ -701,18 +658,15 @@ const App = () => {
           border-radius: 0 0 0.5rem 0.5rem;
           margin-top: 0.5rem;
         }
-        
         .video-details h2 {
           margin-bottom: 1rem;
         }
-        
         .detail-actions {
           display: flex;
           gap: 1rem;
           margin-bottom: 1rem;
           flex-wrap: wrap;
         }
-        
         .detail-btn {
           padding: 0.5rem 1rem;
           border-radius: 0.25rem;
@@ -725,26 +679,21 @@ const App = () => {
           cursor: pointer;
           transition: all 0.2s;
         }
-        
         .detail-btn:hover {
           background: #555;
         }
-        
         .detail-btn.active {
           background: var(--primary);
         }
-        
         /* Responsive Adjustments */
         @media (max-width: 768px) {
           .app-header {
             flex-direction: column;
             align-items: stretch;
           }
-          
           .search-bar {
             max-width: 100%;
           }
-          
           .video-grid {
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
           }
