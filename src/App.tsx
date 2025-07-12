@@ -46,9 +46,17 @@ const App = () => {
       try {
         setLoading(true);
         const data = await fetchYouTubeVideos();
-        // Ensure data.videos matches the Video interface
-        if (Array.isArray(data.videos)) {
-          setVideos(data.videos);
+        if (data?.videos && Array.isArray(data.videos)) {
+          const validatedVideos = data.videos.map(video => ({
+            id: video.id || '',
+            title: video.title || '',
+            description: video.description || '',
+            thumbnail: video.thumbnail || '',
+            duration: video.duration || '',
+            views: video.views || '',
+            date: video.date || ''
+          }));
+          setVideos(validatedVideos);
         }
       } catch (error) {
         console.error('Failed to load videos:', error);
@@ -147,7 +155,6 @@ const App = () => {
 
   return (
     <div className="app-container">
-      {/* Header */}
       <header className="app-header">
         <div className="brand">
           <h1>AwashTube</h1>
@@ -171,7 +178,6 @@ const App = () => {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
       <nav className="tabs">
         {tabs.map(tab => (
           <button
@@ -192,14 +198,12 @@ const App = () => {
         </button>
       </nav>
 
-      {/* Stats Bar */}
       <div className="stats-bar">
         <span>Favorites: {favorites.length}</span>
         <span>History: {history.length}</span>
         <span>Playlist: {playlist.length}</span>
       </div>
 
-      {/* Main Content */}
       <main className="content">
         {loading ? (
           <div className="loading-state">
@@ -263,7 +267,6 @@ const App = () => {
         )}
       </main>
 
-      {/* Video Player Modal */}
       {currentVideo && (
         <div className="video-modal">
           <div className="modal-content">
@@ -319,8 +322,7 @@ const App = () => {
         </div>
       )}
 
-      {/* CSS Styles */}
-      <style jsx>{`
+      <style global jsx>{`
         :root {
           --primary: #4285f4;
           --danger: #ff4444;
@@ -346,7 +348,6 @@ const App = () => {
           padding: 20px;
           min-height: 100vh;
         }
-        /* Header Styles */
         .app-header {
           display: flex;
           flex-wrap: wrap;
@@ -410,7 +411,6 @@ const App = () => {
           cursor: pointer;
           padding: 0.2rem;
         }
-        /* Tabs Navigation */
         .tabs {
           display: flex;
           gap: 0.5rem;
@@ -447,7 +447,6 @@ const App = () => {
         .tab.danger:hover {
           background: #ffe0e0;
         }
-        /* Stats Bar */
         .stats-bar {
           display: flex;
           gap: 1.5rem;
@@ -458,7 +457,6 @@ const App = () => {
           font-size: 0.85rem;
           color: var(--gray);
         }
-        /* Content Area */
         .content {
           margin-top: 1rem;
         }
@@ -489,7 +487,6 @@ const App = () => {
           padding: 3rem;
           color: var(--gray);
         }
-        /* Video Grid */
         .video-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -510,7 +507,7 @@ const App = () => {
         }
         .thumbnail-container {
           position: relative;
-          padding-top: 56.25%; /* 16:9 aspect ratio */
+          padding-top: 56.25%;
           overflow: hidden;
         }
         .thumbnail {
@@ -606,7 +603,6 @@ const App = () => {
         .action-btn.active {
           background: var(--primary);
         }
-        /* Video Modal */
         .video-modal {
           position: fixed;
           top: 0;
@@ -639,7 +635,7 @@ const App = () => {
         }
         .player-container {
           position: relative;
-          padding-top: 56.25%; /* 16:9 aspect ratio */
+          padding-top: 56.25%;
           background: #000;
         }
         iframe {
@@ -684,7 +680,6 @@ const App = () => {
         .detail-btn.active {
           background: var(--primary);
         }
-        /* Responsive Adjustments */
         @media (max-width: 768px) {
           .app-header {
             flex-direction: column;
