@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchYouTubeVideos } from './api/YouTubeApi';
 import {
-  FiPlay, FiX, FiSearch, FiThumbsUp, FiClock,
-  FiList, FiHeart, FiPlus, FiSkipForward
+  FiPlay, FiX, FiSearch, FiHeart, FiClock, FiList, FiPlus
 } from 'react-icons/fi';
 
 interface Video {
@@ -38,10 +37,7 @@ const App = () => {
   const [favorites, setFavorites] = useState<string[]>(() => getLocalStorage('favorites'));
   const [history, setHistory] = useState<string[]>(() => getLocalStorage('history'));
   const [playlist, setPlaylist] = useState<string[]>(() => getLocalStorage('playlist'));
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    const savedTab = localStorage.getItem('activeTab');
-    return savedTab || 'all';
-  });
+  const [activeTab, setActiveTab] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -50,7 +46,10 @@ const App = () => {
       try {
         setLoading(true);
         const data = await fetchYouTubeVideos();
-        setVideos(data.videos);
+        // Ensure data.videos matches the Video interface
+        if (Array.isArray(data.videos)) {
+          setVideos(data.videos);
+        }
       } catch (error) {
         console.error('Failed to load videos:', error);
       } finally {
@@ -310,7 +309,7 @@ const App = () => {
                       }
                     }}
                   >
-                    <FiSkipForward /> Play Next
+                    <FiPlay /> Play Next
                   </button>
                 )}
               </div>
