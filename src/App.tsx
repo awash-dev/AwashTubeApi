@@ -32,10 +32,7 @@ interface Tab {
   icon: React.ReactNode | null;
 }
 
-const getLocalStorage = (
-  key: string,
-  defaultValue: string[] = []
-): string[] => {
+const getLocalStorage = (key: string, defaultValue: string[] = []): string[] => {
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : defaultValue;
@@ -49,18 +46,10 @@ const App = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [searchQuery] = useState("");
-  const [favorites, setFavorites] = useState<string[]>(() =>
-    getLocalStorage("favorites")
-  );
-  const [history, setHistory] = useState<string[]>(() =>
-    getLocalStorage("history")
-  );
-  const [playlist, setPlaylist] = useState<string[]>(() =>
-    getLocalStorage("playlist")
-  );
-  const [watchLater, setWatchLater] = useState<string[]>(() =>
-    getLocalStorage("watchLater")
-  );
+  const [favorites, setFavorites] = useState<string[]>(() => getLocalStorage("favorites"));
+  const [history, setHistory] = useState<string[]>(() => getLocalStorage("history"));
+  const [playlist, setPlaylist] = useState<string[]>(() => getLocalStorage("playlist"));
+  const [watchLater, setWatchLater] = useState<string[]>(() => getLocalStorage("watchLater"));
   const [activeTab, setActiveTab] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -174,8 +163,7 @@ const App = () => {
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
   const filteredVideos = videos.filter((video: Video) => {
@@ -326,9 +314,7 @@ const App = () => {
 
   const downloadVideo = (quality: string) => {
     if (!currentVideo) return;
-    alert(
-      `Preparing download of ${currentVideo.title} in ${quality} quality...`
-    );
+    alert(`Preparing download of ${currentVideo.title} in ${quality} quality...`);
     // In a real app, this would trigger the download process
   };
 
@@ -371,10 +357,7 @@ const App = () => {
             {tab.label}
           </button>
         ))}
-        {(favorites.length > 0 ||
-          history.length > 0 ||
-          playlist.length > 0 ||
-          watchLater.length > 0) && (
+        {(favorites.length > 0 || history.length > 0 || playlist.length > 0 || watchLater.length > 0) && (
           <button
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 border border-red-300 text-red-600 hover:bg-red-200 transition duration-200"
             onClick={clearAllData}
@@ -386,17 +369,12 @@ const App = () => {
       </nav>
 
       {/* Stats Bar */}
-      {(favorites.length > 0 ||
-        history.length > 0 ||
-        playlist.length > 0 ||
-        watchLater.length > 0) && (
+      {(favorites.length > 0 || history.length > 0 || playlist.length > 0 || watchLater.length > 0) && (
         <div className="flex gap-6 mb-4 p-4 bg-white rounded-md text-gray-500 text-sm">
           {favorites.length > 0 && <span>Favorites: {favorites.length}</span>}
           {history.length > 0 && <span>History: {history.length}</span>}
           {playlist.length > 0 && <span>Playlist: {playlist.length}</span>}
-          {watchLater.length > 0 && (
-            <span>Watch Later: {watchLater.length}</span>
-          )}
+          {watchLater.length > 0 && <span>Watch Later: {watchLater.length}</span>}
         </div>
       )}
 
@@ -416,9 +394,7 @@ const App = () => {
               />
               <div className="p-4 flex-1 flex flex-col">
                 <h3 className="font-semibold text-lg mb-2">{video.title}</h3>
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                  {video.description}
-                </p>
+                <p className="text-gray-600 text-sm mb-2 line-clamp-2">{video.description}</p>
                 <div className="flex justify-between text-xs text-gray-500 mt-auto">
                   <span>{video.duration}</span>
                   <span>{video.views} views</span>
@@ -432,9 +408,7 @@ const App = () => {
           <div className="text-center text-gray-500 mt-8">No videos found.</div>
         )}
         {loading && (
-          <div className="text-center text-gray-500 mt-8">
-            Loading videos...
-          </div>
+          <div className="text-center text-gray-500 mt-8">Loading videos...</div>
         )}
       </main>
 
@@ -444,11 +418,7 @@ const App = () => {
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           ref={modalRef}
         >
-          <div
-            className={`w-full ${
-              isFullscreen ? "h-full" : "max-w-4xl"
-            } bg-transparent relative`}
-          >
+          <div className={`w-full ${isFullscreen ? "h-full" : "max-w-4xl"} bg-transparent relative`}>
             <button
               className="absolute top-4 right-4 text-white text-2xl z-50"
               onClick={() => {
@@ -498,11 +468,7 @@ const App = () => {
                     {/* Volume control */}
                     <div className="flex items-center gap-2">
                       <button onClick={() => setIsMuted(!isMuted)}>
-                        {isMuted ? (
-                          <FiVolumeX size={20} />
-                        ) : (
-                          <FiVolume2 size={20} />
-                        )}
+                        {isMuted ? <FiVolumeX size={20} /> : <FiVolume2 size={20} />}
                       </button>
                       <input
                         type="range"
@@ -528,9 +494,7 @@ const App = () => {
                     {/* Playback speed */}
                     <select
                       value={playbackRate}
-                      onChange={(e) =>
-                        setPlaybackRate(parseFloat(e.target.value))
-                      }
+                      onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
                       className="bg-black bg-opacity-50 text-white border-none rounded text-sm"
                     >
                       {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
@@ -579,9 +543,7 @@ const App = () => {
                   onClick={() => toggleFavorite(currentVideo.id)}
                 >
                   <FiHeart />
-                  {favorites.includes(currentVideo.id)
-                    ? "Favorited"
-                    : "Favorite"}
+                  {favorites.includes(currentVideo.id) ? "Favorited" : "Favorite"}
                 </button>
 
                 <button
@@ -593,9 +555,7 @@ const App = () => {
                   onClick={() => togglePlaylist(currentVideo.id)}
                 >
                   <FiList />
-                  {playlist.includes(currentVideo.id)
-                    ? "In Playlist"
-                    : "Add to Playlist"}
+                  {playlist.includes(currentVideo.id) ? "In Playlist" : "Add to Playlist"}
                 </button>
 
                 <button
@@ -607,9 +567,7 @@ const App = () => {
                   onClick={() => toggleWatchLater(currentVideo.id)}
                 >
                   <FiBookmark />
-                  {watchLater.includes(currentVideo.id)
-                    ? "Saved to Watch Later"
-                    : "Watch Later"}
+                  {watchLater.includes(currentVideo.id) ? "Saved to Watch Later" : "Watch Later"}
                 </button>
 
                 <button
